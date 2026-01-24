@@ -1,41 +1,10 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import productService from "@/src/api/services/productService";
+import { collections } from "@/src/assets/assets"; // local collections data
 
 const ShopByCollection = () => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const getCategories = async () => {
-      try {
-        const res = await productService.getCategories();
-        console.log(res.categories);
-        // Fix: Access res.data.categories instead of data.categories
-        if (res&& res.categories) {
-          setCategories(res.categories.slice(0,7));
-        }
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    getCategories();
-  }, []); // Fix: Add empty dependency array to prevent infinite loop
-
-  if (loading) {
-    return (
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-gray-600">Loading collections...</p>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-6xl mx-auto">
@@ -43,22 +12,22 @@ const ShopByCollection = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">Shop by Collection</h2>
           <p className="text-gray-600 mt-3 text-sm sm:text-base max-w-2xl mx-auto">
-            Explore our exclusive jewelry collections and find your perfect piece.
+            Browse our wide range of pet products — from food and toys to grooming essentials and accessories.
           </p>
         </div>
 
         {/* Collections Grid */}
         <div className="flex flex-wrap justify-center gap-8 sm:gap-8 lg:gap-10">
-          {categories.map((collection, index) => (
+          {collections.slice(0, 7).map((collection, index) => (
             <Link
-              key={collection._id}
+              key={collection.slug}
               href={`/shop?category=${collection.slug}`}
               className="group flex flex-col items-center animate-fadeIn"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="relative w-33 h-33 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 rounded-full overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300">
                 <Image
-                  src={`${collection.imageSlug}.webp`}
+                  src={collection.image}
                   alt={collection.name}
                   fill
                   className="object-cover object-center transition-transform duration-500 group-hover:scale-110"
@@ -82,9 +51,9 @@ const ShopByCollection = () => {
           <Link
             href="/collections"
             className="group flex flex-col items-center animate-fadeIn"
-            style={{ animationDelay: `${categories.length * 0.1}s` }}
+            style={{ animationDelay: `${collections.length * 0.1}s` }}
           >
-            <div className="flex items-center justify-center w-33 h-33 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 rounded-full bg-gray-100 hover:bg-gray-900 border-2 border-gray-200 hover:border-gray-900 shadow-lg hover:shadow-2xl transition-all duration-300">
+            <div className="flex items-center justify-center w-33 h-33 sm:w-32 sm:h-32 md:w-36 md:h-36 lg:w-40 lg:h-40 rounded-full bg-gray-100 hover:bg-green-500 border-2 border-gray-200 hover:border-green-600 shadow-lg hover:shadow-2xl transition-all duration-300">
               <div className="text-center">
                 <div className="text-gray-700 group-hover:text-white font-semibold text-sm sm:text-base transition-colors duration-300">
                   Browse
@@ -105,7 +74,7 @@ const ShopByCollection = () => {
         </div>
       </div>
 
-      {/* Add animation to your global CSS or tailwind.config.js */}
+      {/* Add animation */}
       <style jsx global>{`
         @keyframes fadeIn {
           from {

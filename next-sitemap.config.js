@@ -2,7 +2,7 @@
 
 
 module.exports = {
-  siteUrl: 'https://mughaljewelry.store',
+  siteUrl: 'https://rspetshub.store',
   generateRobotsTxt: true,
   sitemapSize: 7000,
   exclude: ['/admin/*'],

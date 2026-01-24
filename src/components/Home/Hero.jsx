@@ -1,12 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { assets } from "@/src/assets/assets";
+import { assets } from "@/src/assets/assets"; // make sure to add pet-related hero images here
 import { motion } from "framer-motion";
 import Link from "next/link";
 
 const Hero = () => {
-  const images = assets.hero_images;
+  const images = assets.hero_images; // Replace with pet supply images
   const [index, setIndex] = useState(0);
 
   // Auto-scroll carousel
@@ -37,7 +37,7 @@ const Hero = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.6 }}
             >
-              Traditional Mughal Jewelry
+              Everything Your Pets Need
             </motion.h1>
 
             {/* Description */}
@@ -47,9 +47,8 @@ const Hero = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
             >
-              Mughal Jewelers is a home-based brand offering handcrafted traditional
-              gold and silver-plated jewelry adorned with semi-precious stones. Each
-              piece reflects timeless heritage, artistry, and passion.
+              RSPetsHub brings you high-quality pet supplies, from nutritious food to toys, accessories, and grooming essentials. 
+              Keep your furry friends happy, healthy, and playful with our carefully curated products.
             </motion.p>
 
             {/* CTA Buttons */}
@@ -59,11 +58,17 @@ const Hero = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
             >
-              <Link href={"/shop"} className="w-full sm:w-auto px-6 py-3 bg-gray-900 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:bg-gray-800 transition-all duration-300 transform hover:scale-105">
-                Shop Now →
+              <Link
+                href={"/shop"}
+                className="w-full sm:w-auto px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:bg-green-600 transition-all duration-300 transform hover:scale-105"
+              >
+                Shop Now 🐾
               </Link>
-              <Link href={"/collections"} className="w-full sm:w-auto px-6 py-3 bg-white text-gray-800 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-900 hover:text-gray-900 transition-all duration-300">
-                View Collections
+              <Link
+                href={"/collections"}
+                className="w-full sm:w-auto px-6 py-3 bg-white text-gray-800 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-900 hover:text-gray-900 transition-all duration-300"
+              >
+                Browse Collections
               </Link>
             </motion.div>
           </motion.div>
@@ -105,7 +110,7 @@ const Hero = () => {
                     key={i}
                     onClick={() => setIndex(i)}
                     className={`h-2 rounded-full transition-all duration-300 ${
-                      index === i ? "w-8 bg-gray-900" : "w-2 bg-gray-300"
+                      index === i ? "w-8 bg-green-500" : "w-2 bg-gray-300"
                     }`}
                     aria-label={`Go to slide ${i + 1}`}
                   />

@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import Image from "next/image";
-import productService from "../../api/services/productService";
 import Link from "next/link";
+import {getProduct} from '../../assets/assets'
 
 
 
@@ -32,14 +32,12 @@ const ProductPage = ({productId}) => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await productService.getProductById(productId);
+        const response =  getProduct(productId)
 
-        if (response.success && response.product) {
-          setProductData(response.product);
-          console.log(response.product);
-        } else {
-          toast.error("Product not found");
-        }
+       
+          setProductData(response);
+         
+        
       } catch (error) {
         console.error("Error fetching product:", error);
         toast.error("Failed to load product");
@@ -73,8 +71,8 @@ const ProductPage = ({productId}) => {
   const totalPrice = productData.price * quantity;
 
   // Get images array safely
-  const images = Array.isArray(productData.images) 
-    ? productData.images 
+  const images = Array.isArray(productData.image) 
+    ? productData.image
     : [];
 
   // Get categories - handle both populated and non-populated cases
@@ -102,7 +100,7 @@ Status: Out of stock
 Please notify me when it's available.`;
 
     window.open(
-      `https://wa.me/923096399939?text=${encodeURIComponent(message)}`,
+      `https://wa.me/923424136198?text=${encodeURIComponent(message)}`,
       "_blank"
     );
   };
@@ -119,7 +117,7 @@ Total: ${currency} ${totalPrice.toLocaleString()}
 I want to buy this.`;
 
     window.open(
-      `https://wa.me/923096399939?text=${encodeURIComponent(message)}`,
+      `https://wa.me/923424136198?text=${encodeURIComponent(message)}`,
       "_blank"
     );
   };
@@ -263,15 +261,7 @@ I want to buy this.`;
             <div className="space-y-3 max-w-md">
               {!isOutOfStock ? (
                 <>
-                  <button
-                    onClick={() => {
-                      addItems();
-                      goToPage("/cart");
-                    }}
-                    className="w-full bg-black text-white py-4 text-sm font-medium hover:bg-gray-900 transition"
-                  >
-                    Buy now
-                  </button>
+                 
 
                   <button
                     onClick={() => {
@@ -285,7 +275,7 @@ I want to buy this.`;
 
                   <button
                     onClick={handleWhatsAppOrder}
-                    className="w-full border border-gray-300 py-4 text-sm font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2"
+                    className="w-full border border-gray-300 py-4 text-sm text-white bg-black font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2"
                   >
                     <MessageCircle size={18} />
                     Order via WhatsApp
@@ -318,9 +308,6 @@ I want to buy this.`;
           <div className="space-y-3 text-sm text-gray-600">
             <div className="flex gap-3">
               <Truck size={18} /> Delivery in 3–7 business days
-            </div>
-            <div className="flex gap-3">
-              <Globe size={18} /> Worldwide shipping
             </div>
             <div className="flex gap-3">
               <Package size={18} /> Shipping fee: {currency} {deliveryFee}

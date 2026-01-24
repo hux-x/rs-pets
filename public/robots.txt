@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Host
-Host: https://mughaljewelry.store
+Host: https://rspetshub.store
 
 # Sitemaps
-Sitemap: https://mughaljewelry.store/sitemap.xml
+Sitemap: https://rspetshub.store/sitemap.xml

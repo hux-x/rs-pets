@@ -1,166 +1,204 @@
-// ExploreContent.jsx - The main component with useSearchParams
+// ExploreContent.jsx - Using local data from assets with enhanced search
 "use client";
-import React, { useState, useEffect, useRef, Suspense } from "react";
+import React, { useState, useMemo, useCallback, Suspense } from "react";
 import Productitem from "@/src/components/ui/ProductItem";
 import ProductFilters from "@/src/components/explore/filters";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
-import productService from "../../api/services/productService";
+import { products, collections } from "@/src/assets/assets";
 
 const ExploreContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  
-  const isUpdatingFromURL = useRef(false);
-  const prevSearchParamsRef = useRef(searchParams.toString());
 
-  const getInitialFilters = () => ({
+  // Derive categories directly - no need for state
+  const categories = useMemo(() => {
+    return collections.map(col => ({
+      _id: col.slug,
+      name: col.name,
+      slug: col.slug
+    }));
+  }, []);
+
+  // Derive filters from URL params
+  const filters = useMemo(() => ({
     category: searchParams.get("category") ? searchParams.get("category").split(",") : [],
     search: searchParams.get("search") || null,
     sortBy: searchParams.get("sortBy") || "latest",
     minPrice: searchParams.get("minPrice") ? parseFloat(searchParams.get("minPrice")) : null,
     maxPrice: searchParams.get("maxPrice") ? parseFloat(searchParams.get("maxPrice")) : null,
-  });
+  }), [searchParams]);
 
-  const [filters, setFilters] = useState(getInitialFilters);
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get("page")) || 1);
+  const currentPage = useMemo(() => parseInt(searchParams.get("page")) || 1, [searchParams]);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalProducts: 0,
-    productsPerPage: 12,
-    hasNextPage: false,
-    hasPrevPage: false,
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const getCats = async () => {
-      try {
-        setCategoriesLoading(true);
-        const res = await productService.getCategories();
-        if (res.success && res.categories) {
-          setCategories(res.categories);
+  // Enhanced search with keyword matching and scoring
+  const searchProducts = useCallback((products, searchTerm) => {
+    if (!searchTerm) return products;
+
+    const searchLower = searchTerm.toLowerCase().trim();
+    const searchWords = searchLower.split(/\s+/).filter(word => word.length > 0);
+
+    return products.map(product => {
+      let score = 0;
+      const nameLower = product.name.toLowerCase();
+      const descLower = product.description.toLowerCase();
+      const categoryLower = product.category.toLowerCase();
+
+      // Exact phrase match (highest priority)
+      if (nameLower.includes(searchLower)) score += 100;
+      if (descLower.includes(searchLower)) score += 50;
+      if (categoryLower.includes(searchLower)) score += 30;
+
+      // Individual word matches
+      searchWords.forEach(word => {
+        // Name matches (high priority)
+        if (nameLower.includes(word)) score += 20;
+        if (nameLower.startsWith(word)) score += 10;
+        
+        // Description matches
+        if (descLower.includes(word)) score += 5;
+        
+        // Category matches
+        if (categoryLower.includes(word)) score += 15;
+      });
+
+      // Partial word matching (fuzzy matching)
+      searchWords.forEach(word => {
+        if (word.length >= 3) {
+          const nameWords = nameLower.split(/\s+/);
+          const descWords = descLower.split(/\s+/);
+          
+          nameWords.forEach(nameWord => {
+            if (nameWord.startsWith(word) || word.startsWith(nameWord)) score += 8;
+          });
+          
+          descWords.forEach(descWord => {
+            if (descWord.startsWith(word) || word.startsWith(descWord)) score += 3;
+          });
         }
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-      } finally {
-        setCategoriesLoading(false);
-      }
-    };
-    getCats();
+      });
+
+      return { ...product, searchScore: score };
+    })
+    .filter(product => product.searchScore > 0)
+    .sort((a, b) => b.searchScore - a.searchScore);
   }, []);
 
-  const fetchFilteredProducts = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // Filter and paginate products - derived state using useMemo
+  const { filteredProducts, pagination } = useMemo(() => {
+    let filtered = [...products];
 
-      const params = {
-        page: currentPage,
-      };
-
-      if (filters.search) params.search = filters.search;
-      if (filters.category && filters.category.length > 0) {
-        params.category = filters.category.join(",");
-      }
-      if (filters.minPrice !== null) params.minPrice = filters.minPrice;
-      if (filters.maxPrice !== null) params.maxPrice = filters.maxPrice;
-      if (filters.sortBy) params.sortBy = filters.sortBy;
-
-      const response = await productService.getFilteredProducts(params);
-      
-      if (response.success) {
-        setProducts(response.products);
-        setPagination(response.pagination);
-      } else {
-        setError("Failed to fetch products");
-      }
-    } catch (err) {
-      console.error("Error fetching products:", err);
-      setError("An error occurred while fetching products");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFilteredProducts();
-  }, [filters, currentPage]);
-
-  useEffect(() => {
-    const currentSearchParams = searchParams.toString();
-    
-    if (currentSearchParams !== prevSearchParamsRef.current) {
-      isUpdatingFromURL.current = true;
-      
-      const newFilters = {
-        category: searchParams.get("category") ? searchParams.get("category").split(",") : [],
-        search: searchParams.get("search") || null,
-        sortBy: searchParams.get("sortBy") || "latest",
-        minPrice: searchParams.get("minPrice") ? parseFloat(searchParams.get("minPrice")) : null,
-        maxPrice: searchParams.get("maxPrice") ? parseFloat(searchParams.get("maxPrice")) : null,
-      };
-      
-      setTimeout(() => {
-        setFilters(newFilters);
-        setCurrentPage(parseInt(searchParams.get("page")) || 1);
-        prevSearchParamsRef.current = currentSearchParams;
-        isUpdatingFromURL.current = false;
-      }, 0);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (isUpdatingFromURL.current) return;
-
-    const params = new URLSearchParams();
-
-    if (filters.category && filters.category.length > 0) {
-      params.set("category", filters.category.join(","));
-    }
+    // Apply enhanced search filter
     if (filters.search) {
-      params.set("search", filters.search);
+      filtered = searchProducts(filtered, filters.search);
     }
-    if (filters.sortBy && filters.sortBy !== "latest") {
-      params.set("sortBy", filters.sortBy);
+
+    // Apply category filter
+    if (filters.category && filters.category.length > 0) {
+      filtered = filtered.filter(product =>
+        filters.category.includes(product.category)
+      );
     }
+
+    // Apply price filters
     if (filters.minPrice !== null) {
-      params.set("minPrice", filters.minPrice.toString());
+      filtered = filtered.filter(product => product.price >= filters.minPrice);
     }
     if (filters.maxPrice !== null) {
-      params.set("maxPrice", filters.maxPrice.toString());
+      filtered = filtered.filter(product => product.price <= filters.maxPrice);
     }
-    if (currentPage > 1) {
-      params.set("page", currentPage.toString());
+
+    // Apply sorting (only if not searching, as search has its own relevance sorting)
+    if (!filters.search) {
+      switch (filters.sortBy) {
+        case "high to low":
+          filtered.sort((a, b) => b.price - a.price);
+          break;
+        case "low to high":
+          filtered.sort((a, b) => a.price - b.price);
+          break;
+        case "latest":
+        default:
+          // Keep original order for "latest"
+          break;
+      }
+    } else {
+      // When searching, optionally apply secondary sort by price
+      if (filters.sortBy === "high to low") {
+        filtered.sort((a, b) => {
+          if (a.searchScore === b.searchScore) return b.price - a.price;
+          return b.searchScore - a.searchScore;
+        });
+      } else if (filters.sortBy === "low to high") {
+        filtered.sort((a, b) => {
+          if (a.searchScore === b.searchScore) return a.price - b.price;
+          return b.searchScore - a.searchScore;
+        });
+      }
+    }
+
+    // Calculate pagination
+    const productsPerPage = 12;
+    const totalProducts = filtered.length;
+    const totalPages = Math.ceil(totalProducts / productsPerPage);
+    const startIndex = (currentPage - 1) * productsPerPage;
+    const endIndex = startIndex + productsPerPage;
+    const paginatedProducts = filtered.slice(startIndex, endIndex);
+
+    return {
+      filteredProducts: paginatedProducts,
+      pagination: {
+        currentPage,
+        totalPages,
+        totalProducts,
+        productsPerPage,
+        hasNextPage: currentPage < totalPages,
+        hasPrevPage: currentPage > 1,
+      }
+    };
+  }, [filters, currentPage, searchProducts]);
+
+  const updateURL = useCallback((newFilters, newPage) => {
+    const params = new URLSearchParams();
+
+    if (newFilters.category && newFilters.category.length > 0) {
+      params.set("category", newFilters.category.join(","));
+    }
+    if (newFilters.search) {
+      params.set("search", newFilters.search);
+    }
+    if (newFilters.sortBy && newFilters.sortBy !== "latest") {
+      params.set("sortBy", newFilters.sortBy);
+    }
+    if (newFilters.minPrice !== null) {
+      params.set("minPrice", newFilters.minPrice.toString());
+    }
+    if (newFilters.maxPrice !== null) {
+      params.set("maxPrice", newFilters.maxPrice.toString());
+    }
+    if (newPage > 1) {
+      params.set("page", newPage.toString());
     }
 
     const queryString = params.toString();
     const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
     
-    prevSearchParamsRef.current = queryString;
     router.replace(newUrl, { scroll: false });
-  }, [filters, currentPage, pathname, router]);
+  }, [pathname, router]);
 
-  const handlePageChange = (page) => {
+  const handlePageChange = useCallback((page) => {
     if (page < 1 || page > pagination.totalPages) return;
-    setCurrentPage(page);
+    updateURL(filters, page);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, [filters, pagination.totalPages, updateURL]);
 
-  const handleFiltersChange = (newFilters) => {
-    setFilters(newFilters);
-    setCurrentPage(1);
-  };
+  const handleFiltersChange = useCallback((newFilters) => {
+    updateURL(newFilters, 1);
+  }, [updateURL]);
 
-  const getPaginationRange = () => {
+  const getPaginationRange = useCallback(() => {
     const range = [];
     const maxVisible = 5;
     const totalPages = pagination.totalPages;
@@ -188,7 +226,7 @@ const ExploreContent = () => {
     }
 
     return range;
-  };
+  }, [currentPage, pagination.totalPages]);
 
   return (
     <div className="min-h-screen">
@@ -200,7 +238,7 @@ const ExploreContent = () => {
             isOpen={filtersOpen}
             onClose={() => setFiltersOpen(false)}
             categories={categories}
-            categoriesLoading={categoriesLoading}
+            categoriesLoading={false}
           />
 
           <div className="flex-1 min-w-0">
@@ -231,35 +269,20 @@ const ExploreContent = () => {
                 <span className="text-sm font-medium">Filters</span>
               </button>
               <p className="text-sm text-gray-600">
-                {loading ? "Loading..." : `${pagination.totalProducts} Product${pagination.totalProducts !== 1 ? 's' : ''} Found`}
+                {`${pagination.totalProducts} Product${pagination.totalProducts !== 1 ? 's' : ''} Found`}
               </p>
             </div>
 
             <div className="bg-white rounded-lg p-4 sm:p-6 mb-8">
-              {loading ? (
-                <div className="text-center py-16">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-                  <p className="text-gray-500 mt-4">Loading products...</p>
-                </div>
-              ) : error ? (
-                <div className="text-center py-16">
-                  <p className="text-red-500 text-lg mb-2">{error}</p>
-                  <button
-                    onClick={fetchFilteredProducts}
-                    className="mt-4 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
-                  >
-                    Try Again
-                  </button>
-                </div>
-              ) : products.length > 0 ? (
+              {filteredProducts.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                  {products.map((item) => (
+                  {filteredProducts.map((item) => (
                     <Productitem
                       key={item._id}
                       id={item._id}
                       name={item.name}
                       price={item.price}
-                      images={item.images}  
+                      images={item.image}  
                       inStock={item.inStock}
                     />
                   ))}
@@ -268,13 +291,13 @@ const ExploreContent = () => {
                 <div className="text-center py-16">
                   <p className="text-gray-500 text-lg mb-2">No products found</p>
                   <p className="text-gray-400 text-sm">
-                    Try adjusting your filters
+                    Try adjusting your filters or search terms
                   </p>
                 </div>
               )}
             </div>
 
-            {!loading && pagination.totalPages > 1 && (
+            {pagination.totalPages > 1 && (
               <div className="flex justify-center items-center">
                 <div className="inline-flex items-center gap-1 sm:gap-2 bg-white border rounded-lg p-1 shadow-sm">
                   <button

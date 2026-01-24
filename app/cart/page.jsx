@@ -3,17 +3,16 @@ import React, { useContext, useEffect, useState } from "react";
 import { ShopContext } from "@/src/context/ShopContext";
 import Title from "@/src/components/ui/Title";
 import Totalcartvalue from "@/src/components/cart/CartTotalValue";
-import { Trash as Bin, Plus, Minus } from "lucide-react";
-import productService from "@/src/api/services/productService";
-import Link from "next/link";
+import { Trash, Plus, Minus } from "lucide-react";
+import { getProduct } from "../../src/assets/assets";
 
 const Cart = () => {
-  const { currency, cartitems, updatequantity, goToPage } = useContext(ShopContext);
+  const { currency, cartitems, updatequantity, goToPage, deliveryFee } = useContext(ShopContext);
   const [cartProducts, setCartProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch product details for all cart items
+  // Fetch product details for all cart items using local data
   useEffect(() => {
     const fetchCartProducts = async () => {
       if (cartitems.length === 0) {
@@ -28,16 +27,10 @@ const Cart = () => {
         // Get unique product IDs
         const productIds = [...new Set(cartitems.map((item) => item.productId))];
 
-        // Fetch all products (you might want to create a specific endpoint for this)
-        // For now, we'll fetch products individually or use a batch fetch if available
-        const productPromises = productIds.map((id) =>
-          productService.getProductById(id)
-        );
-
-        const responses = await Promise.all(productPromises);
-        const products = responses
-          .filter((res) => res.success)
-          .map((res) => res.product);
+        // Fetch all products using getProduct method
+        const products = productIds
+          .map((id) => getProduct(id))
+          .filter((product) => product !== null && product !== undefined);
 
         setCartProducts(products);
       } catch (err) {
@@ -55,6 +48,40 @@ const Cart = () => {
     if (newQuantity >= 1) {
       updatequantity(productId, size, newQuantity);
     }
+  };
+
+  const handleWhatsAppCheckout = () => {
+    // Calculate totals
+    let subtotal = 0;
+    const itemsList = cartitems.map((item) => {
+      const product = cartProducts.find((p) => p._id === item.productId);
+      if (!product) return null;
+      
+      const itemTotal = product.price * item.quantity;
+      subtotal += itemTotal;
+      
+      return `• ${product.name}\n  Size: ${item.size}\n  Qty: ${item.quantity}\n  Price: ${currency} ${product.price.toLocaleString()}\n  Subtotal: ${currency} ${itemTotal.toLocaleString()}`;
+    }).filter(Boolean);
+
+    const total = subtotal + (deliveryFee || 0);
+
+    const message = `Hi! I want to place an order:
+
+📦 ORDER DETAILS
+${itemsList.join('\n\n')}
+
+💰 PRICE BREAKDOWN
+Subtotal: ${currency} ${subtotal.toLocaleString()}
+Delivery Fee: ${currency} ${(deliveryFee || 0).toLocaleString()}
+━━━━━━━━━━━━━━━
+Total: ${currency} ${total.toLocaleString()}
+
+Please confirm my order. Thank you!`;
+
+    window.open(
+      `https://wa.me/923424136198?text=${encodeURIComponent(message)}`,
+      "_blank"
+    );
   };
 
   if (loading) {
@@ -132,11 +159,15 @@ const Cart = () => {
             );
           }
 
-          const imageSrc = Array.isArray(productdata.images)
-            ? typeof productdata.images[0] === "string"
-              ? productdata.images[0]
-              : productdata.images[0]?.src || ""
-            : productdata.images;
+          // Handle images - support both array and single string
+          const imageSrc = (() => {
+            if (Array.isArray(productdata.image)) {
+              return typeof productdata.image[0] === "string"
+                ? productdata.image[0]
+                : productdata.image[0]?.src || "";
+            }
+            return productdata.image || "";
+          })();
 
           // Check stock availability
           const isOutOfStock =
@@ -208,7 +239,7 @@ const Cart = () => {
                         <Plus className="w-4 h-4 text-gray-600" />
                       </button>
                     </div>
-                    <Bin
+                    <Trash
                       onClick={() => updatequantity(item.productId, item.size, 0)}
                       className="w-5 h-5 cursor-pointer text-gray-600 hover:text-red-500 flex-shrink-0 transition-colors"
                     />
@@ -266,7 +297,7 @@ const Cart = () => {
                       <Plus className="w-3.5 h-3.5 text-gray-600" />
                     </button>
                   </div>
-                  <Bin
+                  <Trash
                     onClick={() => updatequantity(item.productId, item.size, 0)}
                     className="w-4.5 h-4.5 cursor-pointer text-gray-600 hover:text-red-500 transition-colors"
                   />
@@ -285,12 +316,12 @@ const Cart = () => {
           </div>
         </div>
         <div className="w-full sm:text-end mt-6 sm:mt-0">
-          <Link
-            href={"/cart/checkout"}
-            className="w-full sm:w-auto bg-black text-white px-8 py-3 text-sm hover:bg-gray-800 transition-colors"
+          <button
+            onClick={handleWhatsAppCheckout}
+            className="w-full sm:w-auto bg-black text-center text-white px-8 py-3 text-sm hover:bg-gray-800 transition-colors inline-block"
           >
-            PROCEED TO ORDER
-          </Link>
+            CHECKOUT VIA WHATSAPP
+          </button>
         </div>
       </div>
     </div>
