@@ -26,7 +26,7 @@ export default function ContactPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
           {/* Phone */}
           <a
-            href="tel:+923001234567"
+            href="tel:+923480026454"
             className="group flex flex-col items-center justify-center border border-gray-200 rounded-xl p-6 hover:border-black transition"
           >
             <Phone className="w-7 h-7 text-gray-700 group-hover:text-black transition" />
@@ -37,7 +37,7 @@ export default function ContactPage() {
 
           {/* WhatsApp */}
           <a
-            href="https://wa.me/923001234567"
+            href="https://wa.me/923480026454"
             target="_blank"
             rel="noopener noreferrer"
             className="group flex flex-col items-center justify-center border border-gray-200 rounded-xl p-6 hover:border-green-600 transition"
@@ -63,7 +63,7 @@ export default function ContactPage() {
 
           {/* Email */}
           <a
-            href="mailto:hello@yourbrand.com"
+            href="mailto:hello@rspetshub.com"
             className="group flex flex-col items-center justify-center border border-gray-200 rounded-xl p-6 hover:border-black transition"
           >
             <Mail className="w-7 h-7 text-gray-700 group-hover:text-black transition" />
