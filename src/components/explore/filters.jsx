@@ -166,7 +166,7 @@ const ProductFilters = ({
               </div>
               <button
                 onClick={applyPriceFilter}
-                className="w-full px-4 py-2 text-sm font-medium text-white bg-black hover:bg-gray-800 rounded-lg transition-colors"
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
               >
                 Apply Price Filter
               </button>
@@ -195,7 +195,7 @@ const ProductFilters = ({
           {/* Clear All Button */}
           <button
             onClick={clearAllFilters}
-            className="w-full mt-6 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="w-full mt-6 px-4 py-2 text-sm font-medium text-gray-700 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors"
           >
             Clear All Filters
           </button>

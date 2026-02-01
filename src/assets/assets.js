@@ -27,6 +27,7 @@ export const collections = [
   { name: "Beds & Houses",   image: "/collections/beds-and-houses.jpeg",       slug: "beds-houses" },
   { name: "Collars & Leashes", image: "/collections/collars-and-leashes.jpg", slug: "collars-leashes" },
   { name: "Grooming",        image: "/collections/pets-grooming.jpg",       slug: "grooming" },
+   { name: "Deals",        image: "/collections/pets-grooming.jpg",       slug: "deals" },
 ];
 
 export const getProduct = (id)=>{
@@ -462,6 +463,39 @@ export const products = [
     image: ["/products/reflex_cat_food_2kg.jpeg"],
     category: "cat-food",
     stock: 15,
+    inStock: true
+  },
+   {
+    _id: "d2199",
+    name: "Deal 2199 – XL Cat House Kit",
+    description:
+      "Complete premium starter kit for cats featuring a spacious XL house for comfort and privacy. Includes a double frog bowl for food and water, litter scoop for easy cleaning, food scoop for accurate portions, a playful ball to keep your cat active, a grooming brush for coat care, and a tasty treat as a reward. Ideal for cat owners looking for comfort, hygiene, and entertainment in one bundle.",
+    price: 2199,
+    image: ["/products/deal_2199_xl_house.jpeg"],
+    category: "deals",
+    stock: 20,
+    inStock: true
+  },
+  {
+    _id: "d1399",
+    name: "Deal 1399 – Kitten Starter Pack",
+    description:
+      "Perfect starter pack for kittens, including a cozy small house for resting, 100g nutritious cat food for healthy growth, a delicious treat, a fun playing ball, a lightweight collar for safety, a food scoop for portion control, and a soft kitten cloth. Designed to meet the basic needs of young cats in an affordable bundle.",
+    price: 1399,
+    image: ["/products/deal_1399_kitten_pack.jpeg"],
+    category: "deals",
+    stock: 25,
+    inStock: true
+  },
+  {
+    _id: "d1699",
+    name: "Deal 1699 – Large Cat Care Combo",
+    description:
+      "Value-packed cat care combo featuring a large comfortable house, 100g quality cat food, a tasty treat, grooming brush to maintain a healthy coat, double frog bowl for feeding convenience, and a nail scissor for safe claw trimming. A balanced bundle focused on comfort, nutrition, and grooming essentials.",
+    price: 1699,
+    image: ["/products/deal_1699_large_house.jpeg"],
+    category: "deals",
+    stock: 18,
     inStock: true
   }
 ]

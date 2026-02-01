@@ -60,15 +60,9 @@ const Hero = () => {
             >
               <Link
                 href={"/shop"}
-                className="w-full sm:w-auto px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:bg-green-600 transition-all duration-300 transform hover:scale-105"
+                className="w-full sm:w-auto px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:bg-blue-600 transition-all duration-300 transform hover:scale-105"
               >
                 Shop Now 🐾
-              </Link>
-              <Link
-                href={"/collections"}
-                className="w-full sm:w-auto px-6 py-3 bg-white text-gray-800 font-semibold rounded-lg border-2 border-gray-300 hover:border-gray-900 hover:text-gray-900 transition-all duration-300"
-              >
-                Browse Collections
               </Link>
             </motion.div>
           </motion.div>
@@ -110,7 +104,7 @@ const Hero = () => {
                     key={i}
                     onClick={() => setIndex(i)}
                     className={`h-2 rounded-full transition-all duration-300 ${
-                      index === i ? "w-8 bg-green-500" : "w-2 bg-gray-300"
+                      index === i ? "w-8 bg-blue-500" : "w-2 bg-gray-300"
                     }`}
                     aria-label={`Go to slide ${i + 1}`}
                   />

@@ -15,7 +15,7 @@ const Latestcollection = () => {
   return (
     <div className="my-10 px-4 md:px-12 lg:px-20">
       <div className="text-center py-8 text-3xl">
-        <Title text1="LATEST" text2="COLLECTIONS" />
+        <Title text1="LATEST" text2="PRODUCTS" />
         <p className="w-full md:w-3/4 mx-auto text-xs sm:text-sm md:text-base text-gray-600">
           Discover our newest pet products, from toys to nutritious food and accessories.
         </p>
@@ -40,7 +40,7 @@ const Latestcollection = () => {
           <div className="text-center mt-8">
             <Link
               href="/shop"
-              className="inline-block bg-green-500 text-white py-2 px-6 rounded-md text-sm md:text-base font-semibold hover:bg-green-600 transition-colors"
+              className="inline-block bg-blue-500 text-white py-2 px-6 rounded-md text-sm md:text-base font-semibold hover:bg-blue-600 transition-colors"
             >
               Explore More 🐾
             </Link>

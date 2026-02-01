@@ -8,7 +8,7 @@ import { collections } from "@/src/assets/assets";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-gray-300 py-12 px-6 md:px-16 lg:px-24">
+    <footer className="bg-blue-900 text-gray-300 py-12 px-6 md:px-16 lg:px-24">
       
       {/* Top Section */}
       <div className="flex flex-col md:flex-row md:justify-between gap-10">
@@ -35,7 +35,7 @@ const Footer = () => {
             <a href="#" className="hover:text-white transition"><FaPinterestP /></a>
             <a href="#" className="hover:text-white transition"><FaTwitter /></a>
             <a
-              href="https://wa.me/923096399939"
+              href="https://wa.me/923480026454"
               target="_blank"
               className="hover:text-green-500 transition"
             >
@@ -80,8 +80,8 @@ const Footer = () => {
         <div className="flex flex-col gap-2">
           <h3 className="font-semibold text-white">Contact</h3>
           <p>Email: support@rspetshub.com</p>
-          <p>Phone: +92 309 6399939</p>
-          <p>Location: Karachi, Pakistan</p>
+          <p>Phone: +92 348 0026454</p>
+          <p>Location: Chakri Road, AlHaram city, Rawalpindi Pakistan</p>
         </div>
       </div>
 

@@ -49,7 +49,7 @@ const ShopByCollection = () => {
 
           {/* Browse More Circle */}
           <Link
-            href="/collections"
+            href="/shop"
             className="group flex flex-col items-center animate-fadeIn"
             style={{ animationDelay: `${collections.length * 0.1}s` }}
           >

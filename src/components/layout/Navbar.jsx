@@ -81,7 +81,7 @@ const Navbar = () => {
       <nav className="sticky top-0 flex items-center justify-between py-5 px-4 sm:px-6 lg:px-8 font-medium bg-white z-50">
 
         <Link href="/">
-          <Image src={assets.logo} alt="Logo" className="w-6 sm:w-12" />
+          <Image src={assets.logo} alt="Logo" className="w-16 sm:w-26" />
         </Link>
 
         {/* Desktop Links */}
