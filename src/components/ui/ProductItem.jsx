@@ -7,12 +7,12 @@ import { toast } from "react-toastify";
 import { ShoppingCart, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-/* ─── Paw Print SVG (matches Hero) ─────────────────────────────── */
+/* ─── Paw Print SVG ─────────────────────────────────────────────── */
 const PawPrint = ({ className }) => (
   <svg viewBox="0 0 32 32" className={className} fill="currentColor">
-    <circle cx="8" cy="8" r="3" />
-    <circle cx="24" cy="8" r="3" />
-    <circle cx="5" cy="15" r="2.5" />
+    <circle cx="8"  cy="8"  r="3"   />
+    <circle cx="24" cy="8"  r="3"   />
+    <circle cx="5"  cy="15" r="2.5" />
     <circle cx="27" cy="15" r="2.5" />
     <path d="M16 12c-5 0-9 4-7 10 1 3 3 5 7 5s6-2 7-5c2-6-2-10-7-10z" />
   </svg>
@@ -20,9 +20,9 @@ const PawPrint = ({ className }) => (
 
 const Productitem = ({ name, id, price, images, inStock }) => {
   const { currency, addtocart } = useContext(ShopContext);
-  const [imageError, setImageError] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [cartBurst, setCartBurst] = useState(false);
+  const [imageError, setImageError]   = useState(false);
+  const [isHovered, setIsHovered]     = useState(false);
+  const [cartBurst, setCartBurst]     = useState(false);
 
   const primaryImage =
     Array.isArray(images) && images.length > 0
@@ -53,7 +53,7 @@ const Productitem = ({ name, id, price, images, inStock }) => {
           transition: "box-shadow 0.3s ease",
         }}
       >
-        {/* ── Blue glow ring on hover ── */}
+        {/* Blue glow ring on hover */}
         <motion.div
           className="absolute -inset-px rounded-2xl pointer-events-none z-20"
           style={{
@@ -64,7 +64,7 @@ const Productitem = ({ name, id, price, images, inStock }) => {
           transition={{ duration: 0.25 }}
         />
 
-        {/* ── Image container ── */}
+        {/* Image container */}
         <div className="relative w-full h-52 sm:h-56 md:h-60 lg:h-64 bg-gradient-to-br from-blue-50 to-sky-50 overflow-hidden">
           {!imageError ? (
             <motion.div
@@ -96,7 +96,7 @@ const Productitem = ({ name, id, price, images, inStock }) => {
             transition={{ duration: 0.3 }}
           />
 
-          {/* ── Out of stock badge ── */}
+          {/* Out of stock badge */}
           <AnimatePresence>
             {!inStock && (
               <motion.span
@@ -110,9 +110,9 @@ const Productitem = ({ name, id, price, images, inStock }) => {
             )}
           </AnimatePresence>
 
-          {/* ── Action buttons — appear on hover ── */}
+          {/* ── Desktop action buttons (hover only) ── */}
           <motion.div
-            className="absolute top-3 right-3 flex flex-col gap-2 z-10"
+            className="hidden sm:flex absolute top-3 right-3 flex-col gap-2 z-10"
             animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : 10 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
           >
@@ -145,7 +145,7 @@ const Productitem = ({ name, id, price, images, inStock }) => {
             </motion.button>
           </motion.div>
 
-          {/* ── Cart burst particles ── */}
+          {/* Cart burst particles */}
           <AnimatePresence>
             {cartBurst && (
               <>
@@ -169,8 +169,8 @@ const Productitem = ({ name, id, price, images, inStock }) => {
           </AnimatePresence>
         </div>
 
-        {/* ── Product info ── */}
-        <div className="p-4 flex flex-col gap-1.5 relative">
+        {/* Product info */}
+        <div className="p-3 sm:p-4 flex flex-col gap-1.5 relative">
           {/* Animated bottom border on hover */}
           <motion.div
             className="absolute bottom-0 left-4 right-4 h-[2px] bg-gradient-to-r from-sky-400 to-blue-500 rounded-full"
@@ -186,14 +186,14 @@ const Productitem = ({ name, id, price, images, inStock }) => {
             {name}
           </p>
 
-          <div className="flex items-center justify-between">
+          {/* ── Desktop: price + stock badge row ── */}
+          <div className="hidden sm:flex items-center justify-between">
             <motion.p
               className="text-sm md:text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#1a4a8a] to-[#0e7fc4]"
               animate={{ scale: isHovered ? 1.04 : 1 }}
               transition={{ duration: 0.2 }}
             >
-              {currency}
-              {price.toLocaleString()}
+              {currency} {price.toLocaleString()}
             </motion.p>
 
             {inStock ? (
@@ -208,6 +208,30 @@ const Productitem = ({ name, id, price, images, inStock }) => {
                 Sold Out
               </span>
             )}
+          </div>
+
+          {/* ── Mobile: price + cart button row (always visible) ── */}
+          <div className="flex sm:hidden items-center justify-between mt-0.5">
+            <p className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#1a4a8a] to-[#0e7fc4]">
+              {currency} {price.toLocaleString()}
+            </p>
+
+            <motion.button
+              onClick={handleAddToCart}
+              disabled={!inStock}
+              aria-label={inStock ? "Add to cart" : "Out of stock"}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                inStock
+                  ? "bg-gradient-to-br from-[#1a4a8a] to-[#0e7fc4] text-white active:scale-95"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
+              }`}
+              animate={cartBurst ? { scale: [1, 1.15, 1] } : {}}
+              transition={cartBurst ? { duration: 0.3 } : {}}
+              whileTap={inStock ? { scale: 0.92 } : {}}
+            >
+              <ShoppingCart size={12} />
+              {inStock ? "Add" : "Sold Out"}
+            </motion.button>
           </div>
         </div>
       </motion.div>

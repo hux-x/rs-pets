@@ -21,7 +21,7 @@ const ShopByCollection = () => {
           {collections.slice(0, 7).map((collection, index) => (
             <Link
               key={collection.slug}
-              href={`/shop?category=${collection.slug}`}
+              href={`/shop/${collection.slug}`}
               className="group flex flex-col items-center animate-fadeIn"
               style={{ animationDelay: `${index * 0.1}s` }}
             >

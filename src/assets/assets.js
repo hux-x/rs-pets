@@ -19,16 +19,55 @@ export const assets = {
   bin_icon
 };
 
-
 export const collections = [
-  { name: "Dog Food",        image: "/collections/dog-food.jpeg",       slug: "dog-food" },
-  { name: "Cat Food",        image: "/collections/cat-food.jpeg",       slug: "cat-food" },
-  { name: "Toys",            image: "/collections/pet-toys.jpg",       slug: "toys" },
-  { name: "Beds & Houses",   image: "/collections/beds-and-houses.jpeg",       slug: "beds-houses" },
-  { name: "Collars & Leashes", image: "/collections/collars-and-leashes.jpg", slug: "collars-leashes" },
-  { name: "Grooming",        image: "/collections/pets-grooming.jpg",       slug: "grooming" },
-   { name: "Deals",        image: "/collections/pets-grooming.jpg",       slug: "deals" },
-    { name: "Litter & Hygiene",        image: "/collections/pets-grooming.jpg",       slug: "litter-hygiene" },
+  { 
+    name: "Dog Food", 
+    image: "/collections/dog-food.jpeg", 
+    slug: "dog-food",
+    description: "Shop premium dog food in Pakistan. From budget-friendly options to imported brands like Royal Canin and Josera, find the best nutrition for your pup."
+  },
+  { 
+    name: "Cat Food", 
+    image: "/collections/cat-food.jpeg", 
+    slug: "cat-food",
+    description: "Buy high-quality cat food online. Featuring top brands like Me-O, Reflex, and Bonnie. Nutritious dry and wet food available for delivery across Pakistan."
+  },
+  { 
+    name: "Toys", 
+    image: "/collections/pet-toys.jpg", 
+    slug: "toys",
+    description: "Interactive and durable pet toys. From teething chews for puppies to feather wands for cats, keep your pets active with the best toy selection in Pakistan."
+  },
+  { 
+    name: "Beds & Houses", 
+    image: "/collections/beds-and-houses.jpeg", 
+    slug: "beds-houses",
+    description: "Comfortable pet bedding and houses. Shop soft fleece beds for winter and elevated cooling beds perfect for the Pakistani summer heat."
+  },
+  { 
+    name: "Collars & Leashes", 
+    image: "/collections/collars-and-leashes.jpg", 
+    slug: "collars-leashes",
+    description: "High-quality leather and nylon collars, harnesses, and leashes. Secure and stylish walking gear for dogs of all sizes and breeds."
+  },
+  { 
+    name: "Grooming", 
+    image: "/collections/pets-grooming.jpg", 
+    slug: "grooming",
+    description: "Essential pet grooming kits. Find tick shampoos, slicker brushes, and nail clippers to keep your pets clean and healthy at home."
+  },
+  { 
+    name: "Deals", 
+    image: "/collections/pets-grooming.jpg", 
+    slug: "deals",
+    description: "Best pet supply discounts in Pakistan. Save on bulk food orders, monthly bundles, and seasonal pet essential sales."
+  },
+  { 
+    name: "Litter & Hygiene", 
+    image: "/collections/pets-grooming.jpg", 
+    slug: "litter-hygiene",
+    description: "Shop clumping cat litter and hygiene products. Odor-control solutions and training pads available at the best prices in Pakistan."
+  },
 ];
 
 export const getProduct = (id)=>{

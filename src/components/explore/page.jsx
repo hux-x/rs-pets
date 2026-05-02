@@ -1,4 +1,3 @@
-// ExploreContent.jsx - Hero-themed with animations
 "use client";
 import React, { useState, useMemo, useCallback, Suspense, useRef } from "react";
 import Fuse from "fuse.js";
@@ -9,18 +8,18 @@ import { SlidersHorizontal, ChevronLeft, ChevronRight, Search, X } from "lucide-
 import { products, collections } from "@/src/assets/assets";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 
-/* ─── Paw Print SVG (matches Hero) ─────────────────────────────── */
+/* ─── Paw Print SVG ─────────────────────────────────────────────── */
 const PawPrint = ({ className }) => (
   <svg viewBox="0 0 32 32" className={className} fill="currentColor">
-    <circle cx="8" cy="8" r="3" />
-    <circle cx="24" cy="8" r="3" />
-    <circle cx="5" cy="15" r="2.5" />
+    <circle cx="8"  cy="8"  r="3"   />
+    <circle cx="24" cy="8"  r="3"   />
+    <circle cx="5"  cy="15" r="2.5" />
     <circle cx="27" cy="15" r="2.5" />
     <path d="M16 12c-5 0-9 4-7 10 1 3 3 5 7 5s6-2 7-5c2-6-2-10-7-10z" />
   </svg>
 );
 
-/* ─── Floating Orb (matches Hero) ──────────────────────────────── */
+/* ─── Floating Orb ──────────────────────────────────────────────── */
 const Orb = ({ style, delay = 0 }) => (
   <motion.div
     className="absolute rounded-full pointer-events-none"
@@ -64,7 +63,10 @@ const FUSE_OPTIONS = {
   shouldSort: true,
 };
 
-/* ─── Page Header ───────────────────────────────────────────────── */
+/* ─── Module-level Fuse singleton (built once, not per render) ──── */
+const productFuse = new Fuse(products, FUSE_OPTIONS);
+
+/* ─── Page Header (only shown on /shop, hidden on category pages) ── */
 const ExploreHeader = ({ totalProducts }) => {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
@@ -73,16 +75,16 @@ const ExploreHeader = ({ totalProducts }) => {
       ref={ref}
       className="relative overflow-hidden bg-gradient-to-br from-[#0f2d5e] via-[#1a4a8a] to-[#0e7fc4] px-4 sm:px-6 lg:px-8 pt-16 pb-24"
     >
-      {/* mesh */}
+      {/* Mesh */}
       <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_80%,#60a5fa,transparent_50%),radial-gradient(circle_at_80%_20%,#3b82f6,transparent_50%)] pointer-events-none" />
       <Orb delay={0}   style={{ width: 240, height: 240, top: "-60px",  left: "-60px",  background: "radial-gradient(circle,rgba(96,165,250,.22),transparent 70%)" }} />
-      <Orb delay={2.5} style={{ width: 160, height: 160, bottom: "0px", right:  "10%",  background: "radial-gradient(circle,rgba(59,130,246,.25),transparent 70%)" }} />
+      <Orb delay={2.5} style={{ width: 160, height: 160, bottom: "0px", right: "10%",   background: "radial-gradient(circle,rgba(59,130,246,.25),transparent 70%)"  }} />
 
       {/* Decorative paw prints */}
       {[
-        { top: "10%", left: "3%",  rotate: -20, size: "w-8 h-8",  opacity: "opacity-10" },
-        { top: "60%", right: "4%", rotate: 15,  size: "w-6 h-6",  opacity: "opacity-10" },
-        { bottom: "10%", left: "40%", rotate: -5, size: "w-5 h-5", opacity: "opacity-5" },
+        { top: "10%", left: "3%",   rotate: -20, size: "w-8 h-8", opacity: "opacity-10" },
+        { top: "60%", right: "4%",  rotate: 15,  size: "w-6 h-6", opacity: "opacity-10" },
+        { bottom: "10%", left: "40%", rotate: -5, size: "w-5 h-5", opacity: "opacity-5"  },
       ].map((p, i) => (
         <motion.div
           key={i}
@@ -137,7 +139,7 @@ const ExploreHeader = ({ totalProducts }) => {
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.3, duration: 0.6 }}
         >
-          {totalProducts.toLocaleString()} products for your furry, feathered & finned friends
+          {totalProducts.toLocaleString()} products for your furry, feathered &amp; finned friends
         </motion.p>
       </div>
 
@@ -252,35 +254,45 @@ const EmptyState = () => (
 );
 
 /* ─── Main ExploreContent ───────────────────────────────────────── */
-const ExploreContent = () => {
-  const searchParams  = useSearchParams();
-  const router        = useRouter();
-  const pathname      = usePathname();
+const ExploreContent = ({
+  defaultCategory,
+  hideHeader,
+} = {}) => {
+  const searchParams = useSearchParams();
+  const router       = useRouter();
+  const pathname     = usePathname();
 
-  const categories = useMemo(() =>
-    collections.map((col) => ({ _id: col.slug, name: col.name, slug: col.slug })),
-  []);
-
-  const fuse = useMemo(() => new Fuse(products, FUSE_OPTIONS), []);
+  const categories = useMemo(
+    () => collections.map((col) => ({ _id: col.slug, name: col.name, slug: col.slug })),
+    []
+  );
 
   const filters = useMemo(() => ({
-    category: searchParams.get("category") ? searchParams.get("category").split(",") : [],
-    search:   searchParams.get("search") || null,
-    sortBy:   searchParams.get("sortBy") || "latest",
+    // URL param takes priority; fall back to defaultCategory prop (from /shop/[category] route)
+    category:
+      searchParams.get("category")
+        ? searchParams.get("category").split(",")
+        : defaultCategory
+        ? [defaultCategory]
+        : [],
+    search:   searchParams.get("search")   || null,
+    sortBy:   searchParams.get("sortBy")   || "latest",
     minPrice: searchParams.get("minPrice") ? parseFloat(searchParams.get("minPrice")) : null,
     maxPrice: searchParams.get("maxPrice") ? parseFloat(searchParams.get("maxPrice")) : null,
-  }), [searchParams]);
+  }), [searchParams, defaultCategory]);
 
-  const currentPage = useMemo(() => parseInt(searchParams.get("page")) || 1, [searchParams]);
+  const currentPage  = useMemo(() => parseInt(searchParams.get("page")) || 1, [searchParams]);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const { filteredProducts, pagination, totalUnpaginated } = useMemo(() => {
     let filtered;
+
     if (filters.search && filters.search.trim().length > 0) {
-      filtered = fuse.search(filters.search.trim()).map((r) => r.item);
+      filtered = productFuse.search(filters.search.trim()).map((r) => r.item);
     } else {
       filtered = [...products];
     }
+
     if (filters.category.length > 0)
       filtered = filtered.filter((p) => filters.category.includes(p.category));
     if (filters.minPrice !== null)
@@ -302,35 +314,46 @@ const ExploreContent = () => {
       filteredProducts: paginatedProducts,
       totalUnpaginated: totalProducts,
       pagination: {
-        currentPage, totalPages, totalProducts,
+        currentPage,
+        totalPages,
+        totalProducts,
         productsPerPage,
         hasNextPage: currentPage < totalPages,
         hasPrevPage: currentPage > 1,
       },
     };
-  }, [filters, currentPage, fuse]);
+  }, [filters, currentPage]);
 
-  const updateURL = useCallback((newFilters, newPage) => {
-    const params = new URLSearchParams();
-    if (newFilters.category?.length > 0) params.set("category", newFilters.category.join(","));
-    if (newFilters.search)               params.set("search",   newFilters.search);
-    if (newFilters.sortBy && newFilters.sortBy !== "latest") params.set("sortBy", newFilters.sortBy);
-    if (newFilters.minPrice !== null)    params.set("minPrice", newFilters.minPrice.toString());
-    if (newFilters.maxPrice !== null)    params.set("maxPrice", newFilters.maxPrice.toString());
-    if (newPage > 1)                     params.set("page",     newPage.toString());
-    const qs = params.toString();
-    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  }, [pathname, router]);
+  const updateURL = useCallback(
+    (newFilters, newPage) => {
+      const params = new URLSearchParams();
+      if (newFilters.category?.length > 0) params.set("category", newFilters.category.join(","));
+      if (newFilters.search)               params.set("search",   newFilters.search);
+      if (newFilters.sortBy && newFilters.sortBy !== "latest") params.set("sortBy", newFilters.sortBy);
+      if (newFilters.minPrice !== null)    params.set("minPrice", newFilters.minPrice.toString());
+      if (newFilters.maxPrice !== null)    params.set("maxPrice", newFilters.maxPrice.toString());
+      if (newPage > 1)                     params.set("page",     newPage.toString());
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router]
+  );
 
-  const handlePageChange = useCallback((page) => {
-    if (page < 1 || page > pagination.totalPages) return;
-    updateURL(filters, page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [filters, pagination.totalPages, updateURL]);
+  const handlePageChange = useCallback(
+    (page) => {
+      if (page < 1 || page > pagination.totalPages) return;
+      updateURL(filters, page);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [filters, pagination.totalPages, updateURL]
+  );
 
-  const handleFiltersChange = useCallback((newFilters) => {
-    updateURL(newFilters, 1);
-  }, [updateURL]);
+  const handleFiltersChange = useCallback(
+    (newFilters) => {
+      updateURL(newFilters, 1);
+    },
+    [updateURL]
+  );
 
   const getPaginationRange = useCallback(() => {
     const range = [];
@@ -349,11 +372,13 @@ const ExploreContent = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ── Hero header ── */}
-      <ExploreHeader totalProducts={products.length} />
+
+      {/* Hero header — hidden when embedded inside a category page */}
+      {!hideHeader && <ExploreHeader totalProducts={products.length} />}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-6 relative z-10">
         <div className="flex gap-8">
+
           {/* Sidebar filters */}
           <ProductFilters
             filters={filters}
@@ -365,6 +390,7 @@ const ExploreContent = () => {
           />
 
           <div className="flex-1 min-w-0">
+
             {/* Search pill */}
             <AnimatePresence>
               {filters.search && (
@@ -463,7 +489,10 @@ const ExploreContent = () => {
 };
 
 /* ─── Suspense wrapper ──────────────────────────────────────────── */
-const Explore = () => (
+const Explore = ({
+  defaultCategory,
+  hideHeader,
+} = {}) => (
   <Suspense
     fallback={
       <div className="min-h-screen bg-gradient-to-br from-[#0f2d5e] via-[#1a4a8a] to-[#0e7fc4] flex items-center justify-center">
@@ -475,7 +504,7 @@ const Explore = () => (
       </div>
     }
   >
-    <ExploreContent />
+    <ExploreContent defaultCategory={defaultCategory} hideHeader={hideHeader} />
   </Suspense>
 );
 
