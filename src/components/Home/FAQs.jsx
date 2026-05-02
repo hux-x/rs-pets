@@ -3,29 +3,29 @@ import React, { useState } from "react";
 
 const faqs = [
   {
-    question: "What is the return policy?",
+    question: "What is your return policy?",
     answer:
-      "You can not return an item after you've received it",
+      "Due to hygiene and safety reasons, pet food, treats, and grooming products cannot be returned once delivered. Accessories can be returned within 7 days if unused and in original packaging.",
   },
   {
-    question: "Do you offer international shipping?",
+    question: "Do you offer home delivery?",
     answer:
-      "Yes, we ship worldwide. Shipping charges and delivery times vary depending on the destination.",
+      "Yes, we offer home delivery for all products. Delivery times and charges may vary depending on your location.",
   },
   {
-    question: "How can I track my order?",
+    question: "Can I track my order?",
     answer:
-      "Once your order is shipped, you will receive a tracking number via email to monitor your delivery.",
+      "Absolutely! You can contact us on +92 348 0026454 to get real-time updates on your order status.",
   },
   {
-    question: "Are your products authentic?",
+    question: "Are your pet products safe and authentic?",
     answer:
-      "All our jewelry pieces are made from genuine materials and crafted with high quality standards.",
+      "Yes, all our products are 100% authentic, vet-approved where applicable, and sourced from trusted brands to ensure your pet’s safety.",
   },
   {
-    question: "Can I customize a jewelry piece?",
+    question: "Do you sell products for all types of pets?",
     answer:
-      "Yes, we offer customization options for select items. Please contact our support team for details.",
+      "We currently offer products for cats, dogs, birds, and small pets. More pet categories are coming soon!",
   },
 ];
 
@@ -41,7 +41,7 @@ const FAQs = () => {
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold">Frequently Asked Questions</h2>
         <p className="text-gray-600 mt-2">
-          Here are some common questions our customers ask.
+          Everything you need to know about shopping for your pets.
         </p>
       </div>
 
@@ -60,6 +60,7 @@ const FAQs = () => {
                 {openIndex === index ? "−" : "+"}
               </span>
             </button>
+
             {openIndex === index && (
               <div className="px-6 py-4 text-gray-600 border-t border-gray-200">
                 {faq.answer}
