@@ -1,17 +1,19 @@
 "use client";
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useContext, useEffect, useState, useRef, useMemo } from "react";
 import { ShopContext } from "@/src/context/ShopContext";
 import {
-  MessageCircle, Truck, Globe, Ban, Plus, Minus,
+  MessageCircle, Truck, Ban, Plus, Minus,
   Package, Wallet, ShoppingCart, ChevronRight,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import Image from "next/image";
 import Link from "next/link";
-import { getProduct } from "../../assets/assets";
+import { getProduct, products } from "../../assets/assets";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import Fuse from "fuse.js";
+import Productitem from "@/src/components/ui/ProductItem";
 
-/* ─── Paw Print SVG (matches Hero) ─────────────────────────────── */
+/* ─── Paw Print SVG ─────────────────────────────────────────────── */
 const PawPrint = ({ className }) => (
   <svg viewBox="0 0 32 32" className={className} fill="currentColor">
     <circle cx="8" cy="8" r="3" />
@@ -75,7 +77,7 @@ const QuantityStepper = ({ quantity, onDecrease, onIncrease }) => (
   </div>
 );
 
-/* ─── Info Row (details section) ────────────────────────────────── */
+/* ─── Info Row ──────────────────────────────────────────────────── */
 const InfoRow = ({ icon: Icon, children, delay }) => {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
@@ -95,16 +97,134 @@ const InfoRow = ({ icon: Icon, children, delay }) => {
   );
 };
 
+/* ─── Fuse.js singleton ─────────────────────────────────────────── */
+const RELATED_FUSE_OPTIONS = {
+  keys: [
+    { name: "name",        weight: 0.3 },
+    { name: "category",    weight: 0.5 },
+    { name: "description", weight: 0.2 },
+  ],
+  threshold: 0.5,
+  distance: 100,
+  minMatchCharLength: 2,
+  includeScore: true,
+  shouldSort: true,
+};
+
+const productFuse = new Fuse(products, RELATED_FUSE_OPTIONS);
+
+/* ─── useRelatedProducts hook ───────────────────────────────────── */
+const useRelatedProducts = (productData, limit = 8) => {
+  return useMemo(() => {
+    if (!productData) return [];
+    const queryParts = [];
+    if (productData.category) queryParts.push(productData.category);
+    const nameWords = productData.name?.split(/\s+/).slice(0, 2).join(" ");
+    if (nameWords) queryParts.push(nameWords);
+    const query = queryParts.join(" ");
+    if (!query.trim()) return [];
+    return productFuse
+      .search(query)
+      .filter((r) => r.item._id !== productData._id)
+      .slice(0, limit)
+      .map((r) => r.item);
+  }, [productData, limit]);
+};
+
+/* ─── Animated card wrapper (scroll-triggered) ──────────────────── */
+const AnimatedCard = ({ children, index }) => {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-30px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 32, scale: 0.96 }}
+      animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+      transition={{
+        delay: (index % 4) * 0.07,
+        duration: 0.5,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+/* ─── Related Products Section ──────────────────────────────────── */
+const RelatedProducts = ({ productData }) => {
+  const related = useRelatedProducts(productData, 8);
+  const headingRef = useRef(null);
+  const headingInView = useInView(headingRef, { once: true });
+
+  if (!related.length) return null;
+
+  return (
+    <section className="bg-white border-t border-blue-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-14">
+
+        {/* Heading */}
+        <div ref={headingRef} className="flex items-end justify-between mb-8 gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={headingInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.55 }}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-1 h-5 rounded-full bg-gradient-to-b from-sky-400 to-blue-600 inline-block" />
+              <span className="text-xs font-semibold text-blue-500 uppercase tracking-widest">
+                You might also like
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">
+              Related Products
+            </h2>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 12 }}
+            animate={headingInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ delay: 0.15, duration: 0.5 }}
+          >
+            <Link
+              href="/shop"
+              className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
+            >
+              View all <ChevronRight size={15} />
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+          {related.map((item, index) => (
+            <AnimatedCard key={item._id} index={index}>
+              <Productitem
+                id={item._id}
+                name={item.name}
+                price={item.price}
+                images={item.image}
+                inStock={item.inStock}
+              />
+            </AnimatedCard>
+          ))}
+        </div>
+
+      </div>
+    </section>
+  );
+};
+
 /* ─── Main ProductPage ──────────────────────────────────────────── */
 const ProductPage = ({ productId }) => {
-  const { currency, addtocart, deliveryFee } = useContext(ShopContext);
+  const { currency, addtocart } = useContext(ShopContext);
 
-  const [productData, setProductData]   = useState(null);
-  const [loading, setLoading]           = useState(true);
+  const [productData, setProductData]     = useState(null);
+  const [loading, setLoading]             = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity]         = useState(1);
-  const [cartBurst, setCartBurst]       = useState(false);
-  const [imageReady, setImageReady]     = useState(false);
+  const [quantity, setQuantity]           = useState(1);
+  const [cartBurst, setCartBurst]         = useState(false);
+  const [imageReady, setImageReady]       = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -133,10 +253,10 @@ const ProductPage = ({ productId }) => {
     );
   }
 
-  const isOutOfStock = !productData.inStock || productData.stock === 0;
-  const totalPrice   = productData.price * quantity;
-  const images       = Array.isArray(productData.image) ? productData.image : [];
-  const categories   = Array.isArray(productData.categories) ? productData.categories : [];
+  const isOutOfStock    = !productData.inStock || productData.stock === 0;
+  const totalPrice      = productData.price * quantity;
+  const images          = Array.isArray(productData.image) ? productData.image : [];
+  const categories      = Array.isArray(productData.categories) ? productData.categories : [];
   const primaryCategory = categories.length > 0
     ? (typeof categories[0] === "object" ? categories[0] : null)
     : null;
@@ -163,24 +283,25 @@ const ProductPage = ({ productId }) => {
 
       {/* ══════════════════ HERO BANNER ══════════════════ */}
       <div className="relative bg-gradient-to-br from-[#0f2d5e] via-[#1a4a8a] to-[#0e7fc4] pt-10 pb-28 px-4 sm:px-6 lg:px-12 overflow-hidden">
-        {/* Mesh & orbs */}
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_80%,#60a5fa,transparent_50%),radial-gradient(circle_at_80%_20%,#3b82f6,transparent_50%)] pointer-events-none" />
         <Orb delay={0}   style={{ width: 200, height: 200, top: "-50px",  left: "-50px",  background: "radial-gradient(circle,rgba(96,165,250,.22),transparent 70%)" }} />
         <Orb delay={2.5} style={{ width: 140, height: 140, bottom: "30px", right: "8%",   background: "radial-gradient(circle,rgba(59,130,246,.25),transparent 70%)" }} />
 
-        {/* Decorative paw prints */}
         {[
           { top: "10%", left: "2%",  rotate: -20, size: "w-7 h-7", opacity: "opacity-10" },
           { top: "55%", right: "3%", rotate: 15,  size: "w-5 h-5", opacity: "opacity-10" },
         ].map((p, i) => (
-          <motion.div key={i} className={`absolute text-white ${p.size} ${p.opacity} pointer-events-none`} style={{ ...p }}
+          <motion.div
+            key={i}
+            className={`absolute text-white ${p.size} ${p.opacity} pointer-events-none`}
+            style={{ ...p }}
             animate={{ rotate: [p.rotate, p.rotate + 10, p.rotate] }}
-            transition={{ duration: 6 + i, repeat: Infinity, ease: "easeInOut" }}>
+            transition={{ duration: 6 + i, repeat: Infinity, ease: "easeInOut" }}
+          >
             <PawPrint className="w-full h-full" />
           </motion.div>
         ))}
 
-        {/* Breadcrumb */}
         <motion.nav
           className="relative z-10 flex items-center gap-1.5 text-xs text-blue-200/80 mb-6 max-w-7xl mx-auto"
           initial={{ opacity: 0, y: -8 }}
@@ -202,7 +323,6 @@ const ProductPage = ({ productId }) => {
           <span className="text-white/60 truncate max-w-[180px]">{productData.name}</span>
         </motion.nav>
 
-        {/* Bottom wave */}
         <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
           <svg viewBox="0 0 1440 80" preserveAspectRatio="none" className="w-full h-14 sm:h-20 fill-white">
             <path d="M0,40 C360,90 1080,0 1440,50 L1440,80 L0,80 Z" />
@@ -210,7 +330,7 @@ const ProductPage = ({ productId }) => {
         </div>
       </div>
 
-      {/* ══════════════════ PRODUCT CONTENT (overlaps banner) ══════════════════ */}
+      {/* ══════════════════ PRODUCT CONTENT ══════════════════ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 -mt-20 relative z-10 pb-20">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-14 items-start">
 
@@ -220,7 +340,6 @@ const ProductPage = ({ productId }) => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
           >
-            {/* Main image card */}
             <div className="relative bg-white rounded-3xl shadow-[0_24px_64px_rgba(14,127,196,.13)] border border-blue-50 overflow-hidden aspect-square">
               {images.length > 0 ? (
                 <AnimatePresence mode="wait">
@@ -249,7 +368,6 @@ const ProductPage = ({ productId }) => {
                 </div>
               )}
 
-              {/* Out of stock overlay badge */}
               <AnimatePresence>
                 {isOutOfStock && (
                   <motion.span
@@ -263,7 +381,6 @@ const ProductPage = ({ productId }) => {
                 )}
               </AnimatePresence>
 
-              {/* Slide counter */}
               {images.length > 1 && (
                 <motion.div
                   key={selectedImage}
@@ -277,7 +394,6 @@ const ProductPage = ({ productId }) => {
               )}
             </div>
 
-            {/* Thumbnails */}
             {images.length > 1 && (
               <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
                 {images.map((img, i) => (
@@ -306,7 +422,6 @@ const ProductPage = ({ productId }) => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
           >
-            {/* Category chips */}
             {categories.length > 0 && (
               <motion.div
                 className="flex flex-wrap gap-2"
@@ -330,7 +445,6 @@ const ProductPage = ({ productId }) => {
               </motion.div>
             )}
 
-            {/* Name */}
             <motion.h1
               className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-gray-900 leading-tight"
               initial={{ opacity: 0, y: 16 }}
@@ -340,7 +454,6 @@ const ProductPage = ({ productId }) => {
               {productData.name}
             </motion.h1>
 
-            {/* Price */}
             <motion.div
               className="flex items-baseline gap-3"
               initial={{ opacity: 0, y: 12 }}
@@ -366,7 +479,6 @@ const ProductPage = ({ productId }) => {
               )}
             </motion.div>
 
-            {/* Stock indicator */}
             <motion.div
               className="flex items-center gap-2"
               initial={{ opacity: 0 }}
@@ -383,7 +495,6 @@ const ProductPage = ({ productId }) => {
               </span>
             </motion.div>
 
-            {/* Description */}
             {productData.description && (
               <motion.p
                 className="text-gray-500 leading-relaxed text-sm sm:text-base max-w-lg border-l-2 border-blue-100 pl-4"
@@ -395,7 +506,6 @@ const ProductPage = ({ productId }) => {
               </motion.p>
             )}
 
-            {/* Quantity + CTAs */}
             <motion.div
               className="space-y-4 pt-2"
               initial={{ opacity: 0, y: 16 }}
@@ -419,11 +529,9 @@ const ProductPage = ({ productId }) => {
                 </div>
               )}
 
-              {/* CTA buttons */}
               <div className="flex flex-col gap-3 max-w-md">
                 {!isOutOfStock ? (
                   <>
-                    {/* Add to cart */}
                     <motion.button
                       onClick={addItems}
                       className="relative w-full flex items-center justify-center gap-2.5 py-4 bg-white border-2 border-blue-600 text-blue-700 font-bold rounded-2xl hover:bg-blue-600 hover:text-white transition-colors duration-250 overflow-hidden"
@@ -434,7 +542,6 @@ const ProductPage = ({ productId }) => {
                     >
                       <ShoppingCart size={18} />
                       Add to Cart
-                      {/* Burst particles */}
                       <AnimatePresence>
                         {cartBurst && [...Array(5)].map((_, i) => (
                           <motion.span
@@ -453,7 +560,6 @@ const ProductPage = ({ productId }) => {
                       </AnimatePresence>
                     </motion.button>
 
-                    {/* WhatsApp order */}
                     <motion.button
                       onClick={handleWhatsAppOrder}
                       className="w-full flex items-center justify-center gap-2.5 py-4 bg-gradient-to-br from-[#1a4a8a] to-[#0e7fc4] text-white font-bold rounded-2xl shadow-[0_6px_24px_rgba(14,127,196,.35)] hover:shadow-[0_8px_32px_rgba(14,127,196,.5)] transition-shadow duration-250"
@@ -514,6 +620,10 @@ const ProductPage = ({ productId }) => {
           </div>
         </div>
       </section>
+
+      {/* ══════════════════ RELATED PRODUCTS ══════════════════ */}
+      <RelatedProducts productData={productData} />
+
     </main>
   );
 };
