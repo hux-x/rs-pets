@@ -357,7 +357,9 @@ const MobileStickyBar = ({ cartProducts, cartitems, currency, deliveryFee, onChe
 
 /* ─── Main Cart ─────────────────────────────────────────────────── */
 const Cart = () => {
-  const { currency, cartitems, updatequantity, goToPage, deliveryFee } =
+  // deliveryFee is no longer pulled from context — it's computed below
+  // from the cart contents (190 base + 50 per additional product line).
+  const { currency, cartitems, updatequantity, goToPage } =
     useContext(ShopContext);
   const [cartProducts, setCartProducts] = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -381,6 +383,11 @@ const Cart = () => {
     };
     fetchCartProducts();
   }, [cartitems]);
+
+  // Shipping: 190 base for the first product line, +50 for every
+  // additional distinct product/size line in the cart. Empty cart = 0.
+  const deliveryFee =
+    cartitems.length > 0 ? 190 + 50 * (cartitems.length - 1) : 0;
 
   const handleQuantityChange = (productId, size, newQty) => {
     if (newQty >= 1) updatequantity(productId, size, newQty);
@@ -481,9 +488,9 @@ const Cart = () => {
             </motion.div>
           </div>
 
-          {/* ── Summary panel (desktop only) ── */}
+          {/* ── Summary panel (now visible on mobile too, stacked below the item list) ── */}
           <motion.div
-            className="hidden lg:block lg:sticky lg:top-6"
+            className="lg:sticky lg:top-6"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.55 }}
@@ -497,11 +504,12 @@ const Cart = () => {
               </div>
 
               <div className="p-6">
-                <Totalcartvalue cartProducts={cartProducts} />
+                <Totalcartvalue cartProducts={cartProducts} deliveryFee={deliveryFee} />
 
+                {/* Desktop checkout button (hidden on mobile — the sticky bar covers it there) */}
                 <motion.button
                   onClick={handleWhatsAppCheckout}
-                  className="mt-6 w-full flex items-center justify-center gap-2.5 py-4 bg-gradient-to-br from-[#1a4a8a] to-[#0e7fc4] text-white font-bold rounded-2xl shadow-[0_6px_24px_rgba(14,127,196,.35)] hover:shadow-[0_8px_32px_rgba(14,127,196,.5)] transition-shadow text-sm"
+                  className="mt-6 w-full hidden lg:flex items-center justify-center gap-2.5 py-4 bg-gradient-to-br from-[#1a4a8a] to-[#0e7fc4] text-white font-bold rounded-2xl shadow-[0_6px_24px_rgba(14,127,196,.35)] hover:shadow-[0_8px_32px_rgba(14,127,196,.5)] transition-shadow text-sm"
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.97 }}
                 >
@@ -510,7 +518,7 @@ const Cart = () => {
                 </motion.button>
 
                 <p className="text-center text-xs text-gray-400 mt-3 leading-relaxed">
-                  You'll be redirected to WhatsApp to confirm your order
+                  You&apos;ll be redirected to WhatsApp to confirm your order
                 </p>
               </div>
             </div>
