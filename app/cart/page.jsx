@@ -407,7 +407,7 @@ const Cart = () => {
       deliveryFee || 0
     ).toLocaleString()}\n━━━━━━━━━━━━━━━\nTotal: ${currency} ${total.toLocaleString()}\n\nPlease confirm my order. Thank you!`;
     window.open(
-      `https://wa.me/923424136198?text=${encodeURIComponent(message)}`,
+      `https://wa.me/923480026454?text=${encodeURIComponent(message)}`,
       "_blank"
     );
   };
