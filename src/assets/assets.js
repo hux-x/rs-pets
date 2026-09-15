@@ -30,37 +30,37 @@ export const getProduct = (id)=>{
 export const collections = [
   {
     name: "Grooming",
-    image: "/collections/grooming-and-care.jpeg",
+    image: "/collections/pets-grooming.jpg",
     slug: "grooming-and-care",
     description: "Essential cat grooming supplies. Brushes, shampoos, nail grinders, and wipes to keep your cat clean, healthy, and comfortable."
   },
   {
     name: "Other Accessories",
-    image: "/collections/other-cat-accessories.jpeg",
+    image: "/collections/pet-accessories.webp",
     slug: "other-cat-accessories",
     description: "A mix of handy cat accessories that don't fit elsewhere, from calming sprays to catnip tubes, for everyday cat care."
   },
   {
     name: "Litter & Hygiene",
-    image: "/collections/litter-and-hygiene.jpeg",
+    image: "/collections/pet-litter-and-hygiene.webp",
     slug: "litter-and-hygiene",
     description: "Litter boxes, scoops, deodorizers, and odour control solutions to keep your cat's space clean and fresh."
   },
   {
     name: "Food & Treats",
-    image: "/collections/food.jpeg",
+    image: "/collections/pet-food-and-treats.webp",
     slug: "food",
     description: "Cat food, treats, and feeding accessories from trusted brands, formulated for taste and nutrition."
   },
   {
     name: "Collars & Harnesses",
-    image: "/collections/collars-and-harnesses.jpeg",
+    image: "/collections/collars-and-leashes.jpg",
     slug: "collars-and-harnesses",
     description: "Collars, chains, and harnesses for safe and stylish walks, in a range of sizes and designs."
   },
   {
     name: "Toys & Play",
-    image: "/collections/toys-and-play.jpeg",
+    image: "/collections/pet-toys.jpg",
     slug: "toys-and-play",
     description: "Interactive toys, laser pointers, and scratchers to keep your cat active, playful, and entertained."
   },
