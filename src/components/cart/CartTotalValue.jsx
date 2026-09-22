@@ -3,8 +3,8 @@ import React, { useContext, useMemo } from "react";
 import { ShopContext } from "@/src/context/ShopContext";
 import Title from "@/src/components/ui/Title";
 
-const Totalcartvalue = ({ cartProducts }) => {
-  const { currency, deliveryFee, cartitems } = useContext(ShopContext);
+const Totalcartvalue = ({ cartProducts, deliveryFee }) => {
+  const { currency, cartitems } = useContext(ShopContext);
 
   const { subtotal, total } = useMemo(() => {
     let subtotal = 0;
