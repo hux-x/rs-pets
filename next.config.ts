@@ -14,4 +14,5 @@ const nextConfig: NextConfig = {
 if (!nextConfig.images) nextConfig.images = {};
 nextConfig.images.unoptimized = true;
 
+nextConfig.output = "export"
 export default nextConfig;
