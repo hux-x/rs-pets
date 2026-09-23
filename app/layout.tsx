@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/src/components/layout/Navbar";
 import ShopContextProvider from "@/src/context/ShopContext";
+import { CatalogProvider } from "@/src/context/CatalogContext";
 import Footer from '@/src/components/layout/Footer'
 import JsonLd from "@/src/components/jsonLd";
 
@@ -86,12 +87,14 @@ export default function RootLayout({
       <body
         className={` antialiased`}
       >
+        <CatalogProvider>
         <ShopContextProvider>
         <Navbar/>
         <JsonLd/>
         {children}
         </ShopContextProvider>
         <Footer/>
+        </CatalogProvider>
       </body>
     </html>
   );

@@ -5,7 +5,7 @@ import Productitem from "@/src/components/ui/ProductItem";
 import ProductFilters from "@/src/components/explore/filters";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { SlidersHorizontal, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
-import { products, collections } from "@/src/assets/assets";
+import { useCatalog } from "@/src/context/CatalogContext";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 
 /* ─── Paw Print SVG ─────────────────────────────────────────────── */
@@ -64,7 +64,9 @@ const FUSE_OPTIONS = {
 };
 
 /* ─── Module-level Fuse singleton (built once, not per render) ──── */
-const productFuse = new Fuse(products, FUSE_OPTIONS);
+// Fuse search index is built at runtime (see useMemo below) since the
+// product catalog now comes from the live WordPress API instead of a
+// static import.
 
 /* ─── Page Header (only shown on /shop, hidden on category pages) ── */
 const ExploreHeader = ({ totalProducts }) => {
@@ -262,10 +264,14 @@ const ExploreContent = ({
   const router       = useRouter();
   const pathname     = usePathname();
 
+  const { products, collections, loading: catalogLoading } = useCatalog();
+
   const categories = useMemo(
     () => collections.map((col) => ({ _id: col.slug, name: col.name, slug: col.slug })),
-    []
+    [collections]
   );
+
+  const productFuse = useMemo(() => new Fuse(products, FUSE_OPTIONS), [products]);
 
   const filters = useMemo(() => ({
     // URL param takes priority; fall back to defaultCategory prop (from /shop/[category] route)
@@ -322,7 +328,7 @@ const ExploreContent = ({
         hasPrevPage: currentPage > 1,
       },
     };
-  }, [filters, currentPage]);
+  }, [filters, currentPage, products, productFuse]);
 
   const updateURL = useCallback(
     (newFilters, newPage) => {
@@ -376,6 +382,12 @@ const ExploreContent = ({
       {/* Hero header — hidden when embedded inside a category page */}
       {!hideHeader && <ExploreHeader totalProducts={products.length} />}
 
+      {catalogLoading && products.length === 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center text-gray-500">
+          Loading products…
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-6 relative z-10">
         <div className="flex gap-8">
 
@@ -386,7 +398,7 @@ const ExploreContent = ({
             isOpen={filtersOpen}
             onClose={() => setFiltersOpen(false)}
             categories={categories}
-            categoriesLoading={false}
+            categoriesLoading={catalogLoading}
           />
 
           <div className="flex-1 min-w-0">

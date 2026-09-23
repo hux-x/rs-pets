@@ -110,6 +110,7 @@ const Navbar = () => {
   const links = [
     { name: "Home", href: "/" },
     { name: "Shop", href: "/shop" },
+    { name: "Track Order", href: "/track-order" },
     { name: "Contact", href: "/contact" },
   ];
 

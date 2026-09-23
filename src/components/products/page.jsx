@@ -8,7 +8,8 @@ import {
 import { toast } from "react-toastify";
 import Image from "next/image";
 import Link from "next/link";
-import { getProduct, products } from "../../assets/assets";
+import productService from "@/src/api/services/productService";
+import { useCatalog } from "@/src/context/CatalogContext";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import Fuse from "fuse.js";
 import Productitem from "@/src/components/ui/ProductItem";
@@ -111,12 +112,19 @@ const RELATED_FUSE_OPTIONS = {
   shouldSort: true,
 };
 
-const productFuse = new Fuse(products, RELATED_FUSE_OPTIONS);
+// Fuse index for related products is built at runtime inside
+// useRelatedProducts, from the live catalog (see CatalogContext) — there's
+// no static product list to build it from at module scope anymore.
 
 /* ─── useRelatedProducts hook ───────────────────────────────────── */
-const useRelatedProducts = (productData, limit = 8) => {
+const useRelatedProducts = (productData, catalogProducts, limit = 8) => {
+  const productFuse = useMemo(
+    () => new Fuse(catalogProducts, RELATED_FUSE_OPTIONS),
+    [catalogProducts]
+  );
+
   return useMemo(() => {
-    if (!productData) return [];
+    if (!productData || catalogProducts.length === 0) return [];
     const queryParts = [];
     if (productData.category) queryParts.push(productData.category);
     const nameWords = productData.name?.split(/\s+/).slice(0, 2).join(" ");
@@ -128,7 +136,7 @@ const useRelatedProducts = (productData, limit = 8) => {
       .filter((r) => r.item._id !== productData._id)
       .slice(0, limit)
       .map((r) => r.item);
-  }, [productData, limit]);
+  }, [productData, limit, productFuse, catalogProducts]);
 };
 
 /* ─── Animated card wrapper (scroll-triggered) ──────────────────── */
@@ -153,7 +161,8 @@ const AnimatedCard = ({ children, index }) => {
 
 /* ─── Related Products Section ──────────────────────────────────── */
 const RelatedProducts = ({ productData }) => {
-  const related = useRelatedProducts(productData, 8);
+  const { products: catalogProducts } = useCatalog();
+  const related = useRelatedProducts(productData, catalogProducts, 8);
   const headingRef = useRef(null);
   const headingInView = useInView(headingRef, { once: true });
 
@@ -230,7 +239,7 @@ const ProductPage = ({ productId }) => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = getProduct(productId);
+        const response = await productService.getProductById(productId);
         setProductData(response);
       } catch (error) {
         console.error("Error fetching product:", error);

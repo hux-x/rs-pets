@@ -1,21 +1,38 @@
 import ProductPage from '../../../src/components/products/page';
-import { products, getProduct } from '../../../src/assets/assets';
+import productService from '../../../src/api/services/productService';
 
 const SITE_URL = 'https://rspetshub.store';
 const SITE_NAME = 'RSPetsHub';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.jpg`;
 
+// Product data now comes from the WordPress REST API instead of a static
+// file. Fails soft everywhere below so a slow/unreachable API at build
+// time never breaks the build — pages just render on-demand instead.
+async function safeGetProduct(id) {
+  try {
+    return await productService.getProductById(id);
+  } catch {
+    return null;
+  }
+}
 
 export async function generateStaticParams() {
-  return products.map((product) => ({
-    productId: product._id,
-  }));
+  try {
+    const { products } = await productService.getAllProducts();
+    return (products || []).map((product) => ({
+      productId: product._id,
+    }));
+  } catch {
+    // No products at build time (e.g. API unreachable) — pages will be
+    // rendered on-demand instead of statically.
+    return [];
+  }
 }
 
 // ── Dynamic metadata ─────────────────────────────────────────────
 export async function generateMetadata({ params }) {
   const { productId } = await params;
-  const product = getProduct(productId);
+  const product = await safeGetProduct(productId);
 
   if (!product) {
     return {
@@ -234,7 +251,7 @@ function BreadcrumbJsonLd({ product }) {
 // ── Page component ───────────────────────────────────────────────
 export default async function Page({ params }) {
   const { productId } = await params;
-  const product = getProduct(productId);
+  const product = await safeGetProduct(productId);
 
   return (
     <>

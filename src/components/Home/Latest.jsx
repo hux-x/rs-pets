@@ -1,9 +1,9 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Title from "@/src/components/ui/Title";
 import Productitem from "@/src/components/ui/ProductItem";
 import Link from "next/link";
-import { products } from "@/src/assets/assets";
+import productService from "@/src/api/services/productService";
 import { motion, useInView } from "framer-motion";
 
 /* ─── Paw SVG ──────────────────────────────────────────────────── */
@@ -42,9 +42,24 @@ const AnimatedCard = ({ children, index }) => {
 
 /* ─── Section ──────────────────────────────────────────────────── */
 const Latestcollection = () => {
-  const [latestProducts] = useState(products.slice(0, 8));
+  const [latestProducts, setLatestProducts] = useState([]);
   const headerRef = useRef(null);
   const headerInView = useInView(headerRef, { once: true });
+
+  useEffect(() => {
+    let cancelled = false;
+    productService
+      .getLatestProducts(8)
+      .then((res) => {
+        if (!cancelled) setLatestProducts(res?.products || []);
+      })
+      .catch((err) => {
+        console.error("Failed to load latest products:", err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section className="relative overflow-hidden py-16 px-4 md:px-12 lg:px-20 bg-white">

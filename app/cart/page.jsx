@@ -4,7 +4,7 @@ import { ShopContext } from "@/src/context/ShopContext";
 import Title from "@/src/components/ui/Title";
 import Totalcartvalue from "@/src/components/cart/CartTotalValue";
 import { Trash, Plus, Minus, ShoppingBag, MessageCircle, ArrowLeft } from "lucide-react";
-import { getProduct } from "../../src/assets/assets";
+import { useCatalog } from "@/src/context/CatalogContext";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import Link from "next/link";
 
@@ -347,8 +347,8 @@ const MobileStickyBar = ({ cartProducts, cartitems, currency, deliveryFee, onChe
           className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-[#1a4a8a] to-[#0e7fc4] text-white font-bold rounded-xl shadow-[0_4px_16px_rgba(14,127,196,.35)] text-sm"
           whileTap={{ scale: 0.97 }}
         >
-          <MessageCircle size={16} />
-          Checkout via WhatsApp
+          <ShoppingBag size={16} />
+          Checkout
         </motion.button>
       </div>
     </motion.div>
@@ -361,6 +361,7 @@ const Cart = () => {
   // from the cart contents (190 base + 50 per additional product line).
   const { currency, cartitems, updatequantity, goToPage } =
     useContext(ShopContext);
+  const { getProduct, loading: catalogLoading } = useCatalog();
   const [cartProducts, setCartProducts] = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
@@ -368,6 +369,7 @@ const Cart = () => {
   useEffect(() => {
     const fetchCartProducts = async () => {
       if (cartitems.length === 0) { setLoading(false); return; }
+      if (catalogLoading) return; // wait for the catalog to finish loading
       try {
         setLoading(true);
         setError(null);
@@ -382,7 +384,7 @@ const Cart = () => {
       }
     };
     fetchCartProducts();
-  }, [cartitems]);
+  }, [cartitems, catalogLoading, getProduct]);
 
   // Shipping: 190 base for the first product line, +50 for every
   // additional distinct product/size line in the cart. Empty cart = 0.
@@ -394,6 +396,8 @@ const Cart = () => {
   };
 
   const handleRemove = (productId, size) => updatequantity(productId, size, 0);
+
+  const handleCheckout = () => goToPage("/checkout");
 
   const handleWhatsAppCheckout = () => {
     let subtotal = 0;
@@ -508,17 +512,25 @@ const Cart = () => {
 
                 {/* Desktop checkout button (hidden on mobile — the sticky bar covers it there) */}
                 <motion.button
-                  onClick={handleWhatsAppCheckout}
+                  onClick={handleCheckout}
                   className="mt-6 w-full hidden lg:flex items-center justify-center gap-2.5 py-4 bg-gradient-to-br from-[#1a4a8a] to-[#0e7fc4] text-white font-bold rounded-2xl shadow-[0_6px_24px_rgba(14,127,196,.35)] hover:shadow-[0_8px_32px_rgba(14,127,196,.5)] transition-shadow text-sm"
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.97 }}
                 >
-                  <MessageCircle size={18} />
-                  Checkout via WhatsApp
+                  <ShoppingBag size={18} />
+                  Proceed to Checkout
                 </motion.button>
 
+                <button
+                  onClick={handleWhatsAppCheckout}
+                  className="mt-3 w-full hidden lg:flex items-center justify-center gap-2 py-2.5 text-blue-600 hover:text-blue-800 font-semibold text-xs transition-colors"
+                >
+                  <MessageCircle size={14} />
+                  Or order via WhatsApp instead
+                </button>
+
                 <p className="text-center text-xs text-gray-400 mt-3 leading-relaxed">
-                  You&apos;ll be redirected to WhatsApp to confirm your order
+                  Pay cash on delivery — no account needed
                 </p>
               </div>
             </div>
@@ -533,7 +545,7 @@ const Cart = () => {
         cartitems={cartitems}
         currency={currency}
         deliveryFee={deliveryFee}
-        onCheckout={handleWhatsAppCheckout}
+        onCheckout={handleCheckout}
       />
     </div>
   );

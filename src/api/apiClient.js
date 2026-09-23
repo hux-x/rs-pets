@@ -1,35 +1,37 @@
-// src/config/axiosConfig.js
+// src/api/apiClient.js
 import axios from "axios";
 
-// Create axios instance with default config
+// This must point at your WordPress site's RSPetsHub Store REST namespace,
+// e.g. https://your-wordpress-site.com/wp-json/rspetshub/v1
+// Set NEXT_PUBLIC_API_URL in .env.local (see .env.local.example).
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+if (!API_BASE_URL && typeof window !== "undefined") {
+  console.error(
+    "NEXT_PUBLIC_API_URL is not set. The storefront can't reach the WordPress API. " +
+      "Add it to .env.local, e.g. NEXT_PUBLIC_API_URL=https://your-site.com/wp-json/rspetshub/v1"
+  );
+}
+
+// Create axios instance with default config.
+// The store has no customer accounts, so there is no auth token to attach —
+// every request here is either a public read/checkout call, or (for the
+// handful of admin-only endpoints, unused by the storefront itself) would
+// be authenticated separately via a WordPress Application Password.
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://ecom-backend-mughal-jewelry.vercel.app/api",
-  timeout: 10000, // 10 seconds
+  baseURL: API_BASE_URL,
+  timeout: 15000, // 15 seconds
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Request interceptor
+// Request interceptor — dev-only logging.
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Only access localStorage in browser environment
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-      
-
-    console.log(process.env.API_KEY)
-
-    // Log request in development
     if (process.env.NODE_ENV === "development") {
       console.log("API Request:", config.method.toUpperCase(), config.url);
     }
-    
     return config;
   },
   (error) => Promise.reject(error)
@@ -38,11 +40,9 @@ axiosInstance.interceptors.request.use(
 // Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
-    // Log response in development
     if (process.env.NODE_ENV === "development") {
       console.log("API Response:", response.status, response.config.url);
     }
-
     return response;
   },
   (error) => {
@@ -50,27 +50,25 @@ axiosInstance.interceptors.response.use(
       const { status, data } = error.response;
 
       switch (status) {
-        case 401:
-          if (typeof window !== "undefined") {
-            localStorage.removeItem("token");
-            window.location.href = "/login";
-          }
-          break;
-
-        case 403:
-          console.error("Forbidden:", data.message);
+        case 400:
+        case 409:
+          // Validation / stock errors — the calling code shows these to the user.
           break;
 
         case 404:
-          console.error("Not Found:", data.message);
+          console.error("Not Found:", data?.message);
+          break;
+
+        case 429:
+          console.error("Rate limited:", data?.message);
           break;
 
         case 500:
-          console.error("Server Error:", data.message);
+          console.error("Server Error:", data?.message);
           break;
 
         default:
-          console.error("API Error:", data.message || "Something went wrong");
+          console.error("API Error:", data?.message || "Something went wrong");
       }
     } else if (error.request) {
       console.error("Network Error: No response from server");
