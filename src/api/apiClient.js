@@ -22,7 +22,7 @@ if (!API_BASE_URL && typeof window !== "undefined") {
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000, // 15 seconds
-  headers: { 
+  headers: {  
     "Content-Type": "application/json",
   },
 });
