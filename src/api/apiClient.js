@@ -4,7 +4,8 @@ import axios from "axios";
 // This must point at your WordPress site's RSPetsHub Store REST namespace,
 // e.g. https://your-wordpress-site.com/wp-json/rspetshub/v1
 // Set NEXT_PUBLIC_API_URL in .env.local (see .env.local.example).
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+const API_BASE_URL = "https://cms.rspetshub.store/wp-json/rspetshub/v1"
 
 if (!API_BASE_URL && typeof window !== "undefined") {
   console.error(
