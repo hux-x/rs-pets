@@ -34,13 +34,7 @@ export async function generateMetadata({ params }) {
   const { productId } = await params;
   const product = await safeGetProduct(productId);
 
-  if (!product) {
-    return {
-      title: `Product Not Found | ${SITE_NAME}`,
-      description: 'This product could not be found.',
-      robots: { index: false, follow: false },
-    };
-  }
+  
 
   const productUrl = `${SITE_URL}/product/${product._id}`;
 
