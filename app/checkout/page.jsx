@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ShopContext } from "@/src/context/ShopContext";
 import { useCatalog } from "@/src/context/CatalogContext";
 import orderService from "@/src/api/services/orderService";
@@ -26,8 +26,12 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
+  // Set right after a successful order so the empty-cart redirect below
+  // doesn't send the user to /cart instead of the confirmation page.
+  const orderPlaced = useRef(false);
+
   useEffect(() => {
-    if (!catalogLoading && cartitems.length === 0) {
+    if (!catalogLoading && cartitems.length === 0 && !orderPlaced.current) {
       goToPage("/cart");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,6 +87,7 @@ export default function CheckoutPage() {
     setSubmitting(true);
     try {
       const order = await orderService.createOrder(payload);
+      orderPlaced.current = true;
       clearcart();
       goToPage(`/order-confirmation?orderNumber=${encodeURIComponent(order.orderNumber)}`);
     } catch (err) {

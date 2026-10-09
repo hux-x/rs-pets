@@ -34,37 +34,44 @@ const ShopContextProvider = ({ children }) => {
     router.push(path);
   };
 
-  const addtocart = async (itemid, size) => {
+  // Adds `quantity` of an item. Uses a functional update so it never reads a
+  // stale cart and never mutates existing state objects.
+  const addtocart = async (itemid, size, quantity = 1) => {
     if (!size) {
       toast.error("Please select a size!");
       return;
     }
 
-    // Check if item with same id and size already exists
-    const existingItemIndex = cartitems.findIndex(
-      (item) => item.productId === itemid && item.size === size
-    );
+    setcartitem((prev) => {
+      const idx = prev.findIndex(
+        (item) => item.productId === itemid && item.size === size
+      );
+      if (idx === -1) return [...prev, { productId: itemid, size, quantity }];
+      return prev.map((item, i) =>
+        i === idx ? { ...item, quantity: item.quantity + quantity } : item
+      );
+    });
+    toast.success("Item added to cart!");
+  };
 
-    let updatedCart;
-
-    if (existingItemIndex !== -1) {
-      // Item exists, increment quantity
-      updatedCart = [...cartitems];
-      updatedCart[existingItemIndex].quantity += 1;
-    } else {
-      // New item, add to cart
-      updatedCart = [
-        ...cartitems,
-        {
-          productId: itemid,
-          size: size,
-          quantity: 1,
-        },
-      ];
+  // Puts the item in the cart at the chosen quantity, then goes to checkout.
+  const buynow = (itemid, size, quantity = 1) => {
+    if (!size) {
+      toast.error("Please select a size!");
+      return;
     }
 
-    setcartitem(updatedCart);
-    toast.success("Item added to cart!");
+    setcartitem((prev) => {
+      const idx = prev.findIndex(
+        (item) => item.productId === itemid && item.size === size
+      );
+      if (idx === -1) return [...prev, { productId: itemid, size, quantity }];
+      // Already in cart: set to the quantity chosen on the product page.
+      // Use `item.quantity + quantity` instead if you want to add to it.
+      return prev.map((item, i) => (i === idx ? { ...item, quantity } : item));
+    });
+
+    router.push("/checkout");
   };
 
   const updatequantity = async (itemid, size, quantity) => {
@@ -105,6 +112,7 @@ const ShopContextProvider = ({ children }) => {
     setshowsearch,
     cartitems,
     addtocart,
+    buynow,
     getcartcount,
     updatequantity,
     goToPage,

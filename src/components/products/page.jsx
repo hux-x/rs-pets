@@ -3,7 +3,7 @@ import React, { useContext, useEffect, useState, useRef, useMemo } from "react";
 import { ShopContext } from "@/src/context/ShopContext";
 import {
   MessageCircle, Truck, Ban, Plus, Minus,
-  Package, Wallet, ShoppingCart, ChevronRight,
+  Package, Wallet, ShoppingCart, ChevronRight, Zap,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import Image from "next/image";
@@ -226,7 +226,7 @@ const RelatedProducts = ({ productData }) => {
 
 /* ─── Main ProductPage ──────────────────────────────────────────── */
 const ProductPage = ({ productId }) => {
-  const { currency, addtocart } = useContext(ShopContext);
+  const { currency, addtocart, buynow } = useContext(ShopContext);
 
   const [productData, setProductData]     = useState(null);
   const [loading, setLoading]             = useState(true);
@@ -270,12 +270,14 @@ const ProductPage = ({ productId }) => {
     ? (typeof categories[0] === "object" ? categories[0] : null)
     : null;
 
+  // addtocart shows its own toast, so none is needed here
   const addItems = () => {
-    for (let i = 0; i < quantity; i++) addtocart(productData._id, "default");
+    addtocart(productData._id, "default", quantity);
     setCartBurst(true);
     setTimeout(() => setCartBurst(false), 600);
-    toast.success(`${productData.name} added to cart!`);
   };
+
+  const handleBuyNow = () => buynow(productData._id, "default", quantity);
 
   const handleWhatsAppRequest = () => {
     const msg = `Hi! I'm interested in this product:\n\nProduct: ${productData.name}\nStatus: Out of stock\n\nPlease notify me when it's available.`;
@@ -569,10 +571,22 @@ const ProductPage = ({ productId }) => {
                       </AnimatePresence>
                     </motion.button>
 
+                    {/* ── BUY NOW ── */}
                     <motion.button
-                      onClick={handleWhatsAppOrder}
+                      onClick={handleBuyNow}
                       className="w-full flex items-center justify-center gap-2.5 py-4 bg-gradient-to-br from-[#1a4a8a] to-[#0e7fc4] text-white font-bold rounded-2xl shadow-[0_6px_24px_rgba(14,127,196,.35)] hover:shadow-[0_8px_32px_rgba(14,127,196,.5)] transition-shadow duration-250"
                       whileHover={{ scale: 1.02, y: -1 }}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      <Zap size={18} />
+                      Buy Now
+                    </motion.button>
+
+                    {/* WhatsApp restyled as outline (green) so Buy Now is the primary action */}
+                    <motion.button
+                      onClick={handleWhatsAppOrder}
+                      className="w-full flex items-center justify-center gap-2.5 py-4 bg-white border-2 border-emerald-500 text-emerald-600 font-bold rounded-2xl hover:bg-emerald-500 hover:text-white transition-colors duration-250"
+                      whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.97 }}
                     >
                       <MessageCircle size={18} />
